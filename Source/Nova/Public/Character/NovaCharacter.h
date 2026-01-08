@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/TargetableInterface.h"
 #include "Logging/LogMacros.h"
 #include "NovaCharacter.generated.h"
 
+class UHardTargetingComponent;
 class UNovaPawnExtensionComponent;
 class UNovaHeroComponent;
 class USpringArmComponent;
@@ -18,7 +20,7 @@ class UCameraComponent;
  *	프로젝트의 플레이어 캐릭터
  */
 UCLASS(config=Game)
-class ANovaCharacter : public ACharacter
+class ANovaCharacter : public ACharacter, public ITargetableInterface
 {
 	GENERATED_BODY()
 
@@ -41,6 +43,11 @@ public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+public:
+	virtual void OnHovered() override;
+	virtual void OnUnhovered() override;
+	virtual void OnSelected() override;
+	virtual void OnDeselected() override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -54,5 +61,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nova", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNovaHeroComponent> NovaHeroComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nova", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UHardTargetingComponent> HardTargetingComponent;
 };
 

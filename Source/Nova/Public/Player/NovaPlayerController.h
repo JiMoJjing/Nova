@@ -25,6 +25,8 @@ public:
 
 	UNovaAbilitySystemComponent* GetNovaAbilitySystemComponent() const;
 
+protected:
+	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 };

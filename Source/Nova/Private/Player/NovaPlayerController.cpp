@@ -26,6 +26,13 @@ UNovaAbilitySystemComponent* ANovaPlayerController::GetNovaAbilitySystemComponen
 	return nullptr;
 }
 
+void ANovaPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	bShowMouseCursor = true;
+}
+
 void ANovaPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);

@@ -7,6 +7,7 @@
 #include "Character/Components/NovaHeroComponent.h"
 #include "Character/Components/NovaPawnExtensionComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/HardTargetingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
@@ -43,6 +44,8 @@ ANovaCharacter::ANovaCharacter()
 
 	NovaPawnExtensionComponent = CreateDefaultSubobject<UNovaPawnExtensionComponent>(TEXT("PawnExtension"));
 	NovaHeroComponent = CreateDefaultSubobject<UNovaHeroComponent>(TEXT("NovaHeroComponent"));
+	
+	HardTargetingComponent = CreateDefaultSubobject<UHardTargetingComponent>(TEXT("HardTargetingComponent"));
 }
 
 void ANovaCharacter::BeginPlay()
@@ -90,4 +93,20 @@ void ANovaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	NovaPawnExtensionComponent->SetupPlayerInputComponent();
+}
+
+void ANovaCharacter::OnHovered()
+{
+}
+
+void ANovaCharacter::OnUnhovered()
+{
+}
+
+void ANovaCharacter::OnSelected()
+{
+}
+
+void ANovaCharacter::OnDeselected()
+{
 }
