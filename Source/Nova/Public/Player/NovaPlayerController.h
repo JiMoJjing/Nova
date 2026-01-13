@@ -6,6 +6,9 @@
 #include "GameFramework/PlayerController.h"
 #include "NovaPlayerController.generated.h"
 
+class UInputAction;
+class UInputMappingContext;
+class UHardTargetingComponent;
 class ANovaPlayerState;
 class UNovaAbilitySystemComponent;
 /**
@@ -28,5 +31,26 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void SetupInputComponent() override;
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
+
+	void ClickTarget();
+
+	UFUNCTION()
+	void OnHoveredTargetChanged(AActor* NewTarget, AActor* OldTarget);
+
+	UFUNCTION()
+	void OnCurrentTargetChanged(AActor* NewTarget, AActor* OldTarget);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nova", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UHardTargetingComponent> HardTargetingComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nova|Targeting", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputMappingContext> PlayerControllerMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nova|Targeting", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> LeftMouseClickAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nova|Targeting", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> RightMouseClickAction;	
 };

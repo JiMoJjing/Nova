@@ -7,7 +7,6 @@
 #include "Character/Components/NovaHeroComponent.h"
 #include "Character/Components/NovaPawnExtensionComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/HardTargetingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
@@ -21,8 +20,8 @@ ANovaCharacter::ANovaCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
@@ -44,8 +43,8 @@ ANovaCharacter::ANovaCharacter()
 
 	NovaPawnExtensionComponent = CreateDefaultSubobject<UNovaPawnExtensionComponent>(TEXT("PawnExtension"));
 	NovaHeroComponent = CreateDefaultSubobject<UNovaHeroComponent>(TEXT("NovaHeroComponent"));
-	
-	HardTargetingComponent = CreateDefaultSubobject<UHardTargetingComponent>(TEXT("HardTargetingComponent"));
+
+	bIsSelected = false;
 }
 
 void ANovaCharacter::BeginPlay()
@@ -53,6 +52,7 @@ void ANovaCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	NovaPawnExtensionComponent->CheckDefaultInitialization();
+	GetMesh()->SetCustomDepthStencilValue(OutlineStencilValue);
 }
 
 void ANovaCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -97,16 +97,32 @@ void ANovaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ANovaCharacter::OnHovered()
 {
+	if (bIsSelected == true)
+	{
+		return;
+	}
+	
+	GetMesh()->SetRenderCustomDepth(true);
 }
 
 void ANovaCharacter::OnUnhovered()
 {
+	if (bIsSelected == true)
+	{
+		return;
+	}
+	
+	GetMesh()->SetRenderCustomDepth(false);
 }
 
 void ANovaCharacter::OnSelected()
 {
+	bIsSelected = true;
+	GetMesh()->SetRenderCustomDepth(true);
 }
 
 void ANovaCharacter::OnDeselected()
 {
+	bIsSelected = false;
+	GetMesh()->SetRenderCustomDepth(false);
 }

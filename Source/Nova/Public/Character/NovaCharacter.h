@@ -8,7 +8,6 @@
 #include "Logging/LogMacros.h"
 #include "NovaCharacter.generated.h"
 
-class UHardTargetingComponent;
 class UNovaPawnExtensionComponent;
 class UNovaHeroComponent;
 class USpringArmComponent;
@@ -62,7 +61,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nova", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNovaHeroComponent> NovaHeroComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nova", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UHardTargetingComponent> HardTargetingComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nova|Outline", meta = (AllowPrivateAccess = "true"))
+	int32 OutlineStencilValue = 250;
+
+	uint8 bIsSelected : 1;
 };
 

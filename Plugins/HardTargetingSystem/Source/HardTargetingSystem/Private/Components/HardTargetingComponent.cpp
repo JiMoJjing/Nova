@@ -13,6 +13,15 @@ void UHardTargetingComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	APlayerController* PC = Cast<APlayerController>(GetOwner());
+	if (PC)
+	{
+		if (PC->IsLocalController() == false)
+		{
+			SetComponentTickEnabled(false);
+			Deactivate();
+		}
+	}
 }
 
 void UHardTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -22,36 +31,40 @@ void UHardTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	FHitResult HitResult;
 	PerformTargeting(HitResult);
 	UpdateHoveredTarget(HitResult);
-
-	if (HoveredTarget.Get() != nullptr)
-	{
-		FString DisplayName = HoveredTarget.Get()->GetName();
-		UKismetSystemLibrary::DrawDebugString(GetOwner(), HoveredTarget.Get()->GetActorLocation(), DisplayName, nullptr, FLinearColor::Blue, 0.01f);
-	}
-	else
-	{
-		if (HitResult.bBlockingHit == false)
-		{
-			return;
-		}
-		UKismetSystemLibrary::DrawDebugString(GetOwner(), HitResult.Location, TEXT("None"), nullptr, FLinearColor::Red, 0.01f);
-	}
 }
 
 void UHardTargetingComponent::SelectTargetUnderCursor()
 {
-	if (HoveredTarget.Get() == nullptr)
+	AActor* NewTarget = HoveredTarget.Get();
+	
+	if (NewTarget == nullptr)
 	{
 		ClearTarget();
 		return;
 	}
 	
-	if (CurrentTarget.Get() == HoveredTarget.Get())
+	if (CurrentTarget.Get() == NewTarget)
 	{
 		return;
 	}
+	
 	AActor* OldTarget = CurrentTarget.Get();
-	CurrentTarget = HoveredTarget.Get();
+	
+	if (OldTarget != nullptr)
+	{
+		if (ITargetableInterface* OldTargetInterface = Cast<ITargetableInterface>(OldTarget))
+		{
+			OldTargetInterface->OnDeselected();
+		}
+	}
+
+	CurrentTarget = NewTarget;
+	
+	if (ITargetableInterface* NewTargetInterface = Cast<ITargetableInterface>(NewTarget))
+	{
+		NewTargetInterface->OnSelected();
+	}
+	
 	OnCurrentTargetChanged.Broadcast(CurrentTarget.Get(), OldTarget);
 }
 
@@ -61,20 +74,22 @@ void UHardTargetingComponent::ClearTarget()
 	{
 		return;
 	}
+
 	AActor* OldTarget = CurrentTarget.Get();
+	
+	if (ITargetableInterface* OldTargetInterface = Cast<ITargetableInterface>(OldTarget))
+	{
+		OldTargetInterface->OnDeselected();
+	}
+
 	CurrentTarget = nullptr;
-	OnCurrentTargetChanged.Broadcast(CurrentTarget.Get(), OldTarget);
+   
+	OnCurrentTargetChanged.Broadcast(nullptr, OldTarget);
 }
 
 void UHardTargetingComponent::PerformTargeting(FHitResult& OutHitResult)
 {
-	APawn* Pawn = Cast<APawn>(GetOwner());
-	if (Pawn == nullptr)
-	{
-		return;
-	}
-	
-	APlayerController* PC = Cast<APlayerController>(Pawn->GetController());
+	APlayerController* PC = Cast<APlayerController>(GetOwner());
 	if (PC == nullptr)
 	{
 		return;
@@ -87,7 +102,7 @@ void UHardTargetingComponent::PerformTargeting(FHitResult& OutHitResult)
 		const FVector End = Start + (MouseDirection * TraceDistance);
 
 		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(Pawn);
+		QueryParams.AddIgnoredActor(PC->GetPawn());
 		QueryParams.bTraceComplex = false;
 
 		GetWorld()->LineTraceSingleByChannel(OutHitResult, Start, End, TraceChannel, QueryParams);
@@ -96,32 +111,43 @@ void UHardTargetingComponent::PerformTargeting(FHitResult& OutHitResult)
 
 void UHardTargetingComponent::UpdateHoveredTarget(const FHitResult& OutHitResult)
 {
-	AActor* OldTarget = HoveredTarget.Get();
-	
+	AActor* NewTarget = nullptr;
+
 	if (OutHitResult.bBlockingHit == true)
 	{
 		AActor* HitActor = OutHitResult.GetActor();
 		if (HitActor != nullptr)
 		{
-			if (HoveredTarget.Get() == HitActor)
+			if (ITargetableInterface* HitTargetInterface = Cast<ITargetableInterface>(HitActor))
 			{
-				return;
-			}
-			
-			if (ITargetableInterface* TargetableInterface = Cast<ITargetableInterface>(HitActor))
-			{
-				HoveredTarget = HitActor;
-				OnHoveredTargetChanged.Broadcast(HitActor, OldTarget);
-				return;
+				NewTarget = HitActor;
 			}
 		}
 	}
 
-	if (OldTarget == nullptr)
+	if (HoveredTarget.Get() == NewTarget)
 	{
 		return;
 	}
-	
-	HoveredTarget = nullptr;
-	OnHoveredTargetChanged.Broadcast(nullptr, OldTarget);
+
+	AActor* OldTarget = HoveredTarget.Get();
+
+	if (OldTarget != nullptr)
+	{
+		if (ITargetableInterface* OldTargetInterface = Cast<ITargetableInterface>(OldTarget))
+		{
+			OldTargetInterface->OnUnhovered();
+		}
+	}
+
+	if (NewTarget != nullptr)
+	{
+		if (ITargetableInterface* NewTargetInterface = Cast<ITargetableInterface>(NewTarget))
+		{
+			NewTargetInterface->OnHovered();
+		}
+	}
+
+	HoveredTarget = NewTarget;
+	OnHoveredTargetChanged.Broadcast(NewTarget, OldTarget);
 }

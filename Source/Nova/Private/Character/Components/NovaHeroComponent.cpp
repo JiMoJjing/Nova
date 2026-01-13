@@ -87,7 +87,7 @@ void UNovaHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCompo
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
 	check(Subsystem);
 
-	Subsystem->ClearAllMappings();
+	// Subsystem->ClearAllMappings();
 	Subsystem->AddMappingContext(DefaultInputMappingContext, 0);
 
 	if (const UNovaPawnExtensionComponent* PawnExtComp = UNovaPawnExtensionComponent::FindNovaPawnExtensionComponent(Pawn))
