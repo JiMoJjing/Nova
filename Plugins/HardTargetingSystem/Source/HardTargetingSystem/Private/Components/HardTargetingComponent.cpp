@@ -2,11 +2,21 @@
 #include "Components/HardTargetingComponent.h"
 #include "Interfaces/TargetableInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 
 UHardTargetingComponent::UHardTargetingComponent(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = true;
+
+	SetIsReplicatedByDefault(true);
+}
+
+void UHardTargetingComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UHardTargetingComponent, CurrentTarget);
 }
 
 void UHardTargetingComponent::BeginPlay()
@@ -19,7 +29,6 @@ void UHardTargetingComponent::BeginPlay()
 		if (PC->IsLocalController() == false)
 		{
 			SetComponentTickEnabled(false);
-			Deactivate();
 		}
 	}
 }
@@ -28,63 +37,36 @@ void UHardTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FHitResult HitResult;
-	PerformTargeting(HitResult);
-	UpdateHoveredTarget(HitResult);
+	APlayerController* PC = Cast<APlayerController>(GetOwner());
+
+	if (PC && PC->IsLocalController() == true)
+	{
+		FHitResult HitResult;
+		PerformTargeting(HitResult);
+		UpdateHoveredTarget(HitResult);	
+	}
 }
 
 void UHardTargetingComponent::SelectTargetUnderCursor()
 {
 	AActor* NewTarget = HoveredTarget.Get();
 	
-	if (NewTarget == nullptr)
-	{
-		ClearTarget();
-		return;
-	}
-	
-	if (CurrentTarget.Get() == NewTarget)
-	{
-		return;
-	}
-	
-	AActor* OldTarget = CurrentTarget.Get();
-	
-	if (OldTarget != nullptr)
-	{
-		if (ITargetableInterface* OldTargetInterface = Cast<ITargetableInterface>(OldTarget))
-		{
-			OldTargetInterface->OnDeselected();
-		}
-	}
+	ChangeCurrentTarget(NewTarget);
 
-	CurrentTarget = NewTarget;
-	
-	if (ITargetableInterface* NewTargetInterface = Cast<ITargetableInterface>(NewTarget))
+	if (GetOwner()->HasAuthority() == false)
 	{
-		NewTargetInterface->OnSelected();
+		Server_SetCurrentTarget(NewTarget);
 	}
-	
-	OnCurrentTargetChanged.Broadcast(CurrentTarget.Get(), OldTarget);
 }
 
 void UHardTargetingComponent::ClearTarget()
 {
-	if (CurrentTarget.Get() == nullptr)
-	{
-		return;
-	}
+	ChangeCurrentTarget(nullptr);
 
-	AActor* OldTarget = CurrentTarget.Get();
-	
-	if (ITargetableInterface* OldTargetInterface = Cast<ITargetableInterface>(OldTarget))
+	if (GetOwner()->HasAuthority() == false)
 	{
-		OldTargetInterface->OnDeselected();
+		Server_SetCurrentTarget(nullptr);
 	}
-
-	CurrentTarget = nullptr;
-   
-	OnCurrentTargetChanged.Broadcast(nullptr, OldTarget);
 }
 
 void UHardTargetingComponent::PerformTargeting(FHitResult& OutHitResult)
@@ -150,4 +132,39 @@ void UHardTargetingComponent::UpdateHoveredTarget(const FHitResult& OutHitResult
 
 	HoveredTarget = NewTarget;
 	OnHoveredTargetChanged.Broadcast(NewTarget, OldTarget);
+}
+
+void UHardTargetingComponent::ChangeCurrentTarget(AActor* NewTarget)
+{
+	if (CurrentTarget == NewTarget)
+	{
+		return;
+	}
+
+	AActor* OldTarget = CurrentTarget;
+
+	if (OldTarget != nullptr)
+	{
+		if (ITargetableInterface* OldTargetInterface = Cast<ITargetableInterface>(OldTarget))
+		{
+			OldTargetInterface->OnDeselected();
+		}
+	}
+
+	CurrentTarget = NewTarget;
+
+	if (CurrentTarget != nullptr)
+	{
+		if (ITargetableInterface* NewTargetInterface = Cast<ITargetableInterface>(CurrentTarget))
+		{
+			NewTargetInterface->OnSelected();
+		}
+	}
+	
+	OnCurrentTargetChanged.Broadcast(CurrentTarget, OldTarget);
+}
+
+void UHardTargetingComponent::Server_SetCurrentTarget_Implementation(AActor* NewTarget)
+{
+	CurrentTarget = NewTarget;
 }

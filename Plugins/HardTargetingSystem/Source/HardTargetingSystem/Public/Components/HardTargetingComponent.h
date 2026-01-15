@@ -27,6 +27,8 @@ class HARDTARGETINGSYSTEM_API UHardTargetingComponent : public UActorComponent
 public:
 	UHardTargetingComponent(const FObjectInitializer& ObjectInitializer);
 
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -43,6 +45,11 @@ protected:
 	void PerformTargeting(FHitResult& OutHitResult);
 	void UpdateHoveredTarget(const FHitResult& OutHitResult);
 
+	void ChangeCurrentTarget(AActor* NewTarget);
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetCurrentTarget(AActor* NewTarget);
+
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnCurrentTargetChanged OnCurrentTargetChanged;
@@ -57,8 +64,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HardTargetingSystem", meta = (AllowPrivateAccess = "true"))
 	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
 	
-	UPROPERTY()
-	TWeakObjectPtr<AActor> CurrentTarget;
+	UPROPERTY(Replicated, Transient)
+	TObjectPtr<AActor> CurrentTarget;
 
 	UPROPERTY()
 	TWeakObjectPtr<AActor> HoveredTarget;
