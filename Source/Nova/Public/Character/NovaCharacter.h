@@ -47,6 +47,7 @@ public:
 	virtual void OnUnhovered() override;
 	virtual void OnSelected() override;
 	virtual void OnDeselected() override;
+	virtual void GetTargetBounds(float& OutHalfWidth, float& OutHalfHeight) const override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))

@@ -16,6 +16,8 @@ ANovaCharacter::ANovaCharacter()
 {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
+	GetMesh()->SetReceivesDecals(false);
+
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
@@ -125,4 +127,9 @@ void ANovaCharacter::OnDeselected()
 {
 	bIsSelected = false;
 	GetMesh()->SetRenderCustomDepth(false);
+}
+
+void ANovaCharacter::GetTargetBounds(float& OutHalfWidth, float& OutHalfHeight) const
+{
+	GetCapsuleComponent()->GetScaledCapsuleSize(OutHalfWidth, OutHalfHeight);
 }

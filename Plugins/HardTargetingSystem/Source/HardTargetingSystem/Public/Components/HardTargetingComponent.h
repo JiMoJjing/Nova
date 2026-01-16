@@ -16,6 +16,7 @@
  *	ITargetableInterface를 구현한 액터만을 대상으로 필터링합니다.
  */
 
+class ATargetIndicator;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCurrentTargetChanged, AActor*, NewTarget, AActor*, OldTarget);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHoveredTargetChanged, AActor*, NewTarget, AActor*, OldTarget);
 
@@ -31,6 +32,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -49,6 +51,8 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetCurrentTarget(AActor* NewTarget);
+	
+	void SetIndicatorTarget(AActor* NewTarget);
 
 public:
 	UPROPERTY(BlueprintAssignable)
@@ -69,4 +73,10 @@ protected:
 
 	UPROPERTY()
 	TWeakObjectPtr<AActor> HoveredTarget;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HardTargetingSystem", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<ATargetIndicator> TargetIndicatorClass;
+	
+	UPROPERTY()
+	TObjectPtr<ATargetIndicator> TargetIndicator;
 };

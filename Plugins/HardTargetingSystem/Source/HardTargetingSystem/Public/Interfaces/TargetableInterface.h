@@ -29,4 +29,6 @@ public:
 	virtual void OnUnhovered() = 0;
 	virtual void OnSelected() = 0;
 	virtual void OnDeselected() = 0;
+
+	virtual void GetTargetBounds(float& OutHalfWidth, float& OutHalfHeight) const = 0;
 };

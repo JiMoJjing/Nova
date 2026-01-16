@@ -1,5 +1,7 @@
 ﻿
 #include "Components/HardTargetingComponent.h"
+
+#include "Actors/TargetIndicator.h"
 #include "Interfaces/TargetableInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -30,7 +32,38 @@ void UHardTargetingComponent::BeginPlay()
 		{
 			SetComponentTickEnabled(false);
 		}
+		
+		if (PC->IsLocalController() == true)
+		{
+			if (TargetIndicatorClass != nullptr)
+			{
+				UWorld* World = GetWorld();
+				if (World != nullptr)
+				{
+					FActorSpawnParameters SpawnParams;
+					SpawnParams.Owner = PC;
+					SpawnParams.Instigator = PC->GetPawn();
+					
+					ATargetIndicator* NewTargetIndicator = World->SpawnActor<ATargetIndicator>(TargetIndicatorClass, SpawnParams);
+					if (NewTargetIndicator != nullptr)
+					{
+						TargetIndicator = NewTargetIndicator;
+					}
+				}
+			}
+		}
 	}
+}
+
+void UHardTargetingComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (TargetIndicator != nullptr)
+	{
+		TargetIndicator->Destroy();
+		TargetIndicator = nullptr;
+	}
+	
+	Super::EndPlay(EndPlayReason);
 }
 
 void UHardTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -52,6 +85,7 @@ void UHardTargetingComponent::SelectTargetUnderCursor()
 	AActor* NewTarget = HoveredTarget.Get();
 	
 	ChangeCurrentTarget(NewTarget);
+	SetIndicatorTarget(NewTarget);
 
 	if (GetOwner()->HasAuthority() == false)
 	{
@@ -62,6 +96,7 @@ void UHardTargetingComponent::SelectTargetUnderCursor()
 void UHardTargetingComponent::ClearTarget()
 {
 	ChangeCurrentTarget(nullptr);
+	SetIndicatorTarget(nullptr);
 
 	if (GetOwner()->HasAuthority() == false)
 	{
@@ -162,6 +197,16 @@ void UHardTargetingComponent::ChangeCurrentTarget(AActor* NewTarget)
 	}
 	
 	OnCurrentTargetChanged.Broadcast(CurrentTarget, OldTarget);
+}
+
+void UHardTargetingComponent::SetIndicatorTarget(AActor* NewTarget)
+{
+	if (TargetIndicator == nullptr)
+	{
+		return;
+	}
+	
+	TargetIndicator->SetTarget(NewTarget);
 }
 
 void UHardTargetingComponent::Server_SetCurrentTarget_Implementation(AActor* NewTarget)
