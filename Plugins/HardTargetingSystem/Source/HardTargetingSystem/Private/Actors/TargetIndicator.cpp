@@ -31,8 +31,29 @@ ATargetIndicator::ATargetIndicator()
 void ATargetIndicator::BeginPlay()
 {
 	Super::BeginPlay();
-
+	Init();
 	Deactivate();
+}
+
+void ATargetIndicator::Init()
+{
+	if (MarkWidget != nullptr)
+	{
+		UUserWidget* Widget = MarkWidget->GetWidget();
+		if (Widget != nullptr)
+		{
+			MarkWidgetObject = Widget;
+		}
+	}
+	
+	if (GroundDecal != nullptr)
+	{
+		UMaterialInstanceDynamic* MID = GroundDecal->CreateDynamicMaterialInstance();
+		if (MID != nullptr)
+		{
+			DecalMaterial = MID;
+		}
+	}
 }
 
 void ATargetIndicator::Activate(AActor* NewTarget)
@@ -44,6 +65,11 @@ void ATargetIndicator::Activate(AActor* NewTarget)
 
 	CurrentTarget = NewTarget;
 	AttachToActor(CurrentTarget.Get(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+	if (ITargetableInterface* TargetableInterface = Cast<ITargetableInterface>(NewTarget))
+	{
+		SetColorByFactionTag(TargetableInterface->GetFactionTag());
+	}
 	
 	SetIndicatorOffset();
 	
@@ -92,6 +118,25 @@ void ATargetIndicator::SetIndicatorOffset()
 	GroundDecal->SetWorldScale3D(NewDecalScale);
 }
 
+void ATargetIndicator::SetColorByFactionTag(const FGameplayTag& TargetFactionTag)
+{
+	if (MarkWidgetObject != nullptr)
+	{
+		if (MarkColors.Find(TargetFactionTag) != nullptr)
+		{
+			MarkWidgetObject->SetColorAndOpacity(MarkColors[TargetFactionTag]);
+		}
+	}
+	
+	if (DecalMaterial != nullptr)
+	{
+		if (DecalColors.Find(TargetFactionTag) != nullptr)
+		{
+			DecalMaterial->SetVectorParameterValue(FName(TEXT("Color")), MarkColors[TargetFactionTag]);
+		}
+	}
+}
+
 void ATargetIndicator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -123,6 +168,7 @@ void ATargetIndicator::SetTarget(AActor* NewTarget)
 		Deactivate();
 		return;
 	}
-	
+
+	Deactivate();
 	Activate(NewTarget);
 }

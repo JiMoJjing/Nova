@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
 #include "TargetIndicator.generated.h"
 
@@ -36,11 +37,13 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	void Init();
 
 	void Activate(AActor* NewTarget);
 	void Deactivate();
 	
 	void SetIndicatorOffset();
+	void SetColorByFactionTag(const FGameplayTag& TargetFactionTag);
 
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -66,6 +69,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	float DefaultDecalSizeOffset = 50.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	TMap<FGameplayTag, FLinearColor> MarkColors;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	TMap<FGameplayTag, FColor> DecalColors;
+		
 	UPROPERTY()
 	TWeakObjectPtr<AActor> CurrentTarget;
+	
+	UPROPERTY()
+	TWeakObjectPtr<UMaterialInstanceDynamic> DecalMaterial;
+	
+	UPROPERTY()
+	TWeakObjectPtr<UUserWidget> MarkWidgetObject;
 };

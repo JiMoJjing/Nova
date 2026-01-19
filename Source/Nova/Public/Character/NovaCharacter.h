@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/TargetableInterface.h"
 #include "Logging/LogMacros.h"
@@ -37,7 +38,9 @@ protected:
 	virtual void OnRep_PlayerState() override;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
+	
+	void OnFactionTagChanged();
+	
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
@@ -48,6 +51,8 @@ public:
 	virtual void OnSelected() override;
 	virtual void OnDeselected() override;
 	virtual void GetTargetBounds(float& OutHalfWidth, float& OutHalfHeight) const override;
+	virtual FGameplayTag GetFactionTag() const override;
+	virtual void SetFactionTag(const FGameplayTag& NewFactionTag) override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -62,9 +67,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nova", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNovaHeroComponent> NovaHeroComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nova|Outline", meta = (AllowPrivateAccess = "true"))
-	int32 OutlineStencilValue = 250;
+	UPROPERTY()
+	int32 OutlineStencilValue = 255;
 
 	uint8 bIsSelected : 1;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nova|Team", meta = (AllowPrivateAccess = "true", Categories = "Faction"))
+	FGameplayTag FactionTag;
 };
-

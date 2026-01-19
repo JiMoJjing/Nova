@@ -2,6 +2,7 @@
 
 #include "Character/NovaCharacter.h"
 
+#include "NovaGameplayTags.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Character/Components/NovaHeroComponent.h"
@@ -47,6 +48,8 @@ ANovaCharacter::ANovaCharacter()
 	NovaHeroComponent = CreateDefaultSubobject<UNovaHeroComponent>(TEXT("NovaHeroComponent"));
 
 	bIsSelected = false;
+	
+	FactionTag = NovaGameplayTags::Faction_Enemy;
 }
 
 void ANovaCharacter::BeginPlay()
@@ -54,7 +57,7 @@ void ANovaCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	NovaPawnExtensionComponent->CheckDefaultInitialization();
-	GetMesh()->SetCustomDepthStencilValue(OutlineStencilValue);
+	OnFactionTagChanged();
 }
 
 void ANovaCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -97,6 +100,24 @@ void ANovaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	NovaPawnExtensionComponent->SetupPlayerInputComponent();
 }
 
+void ANovaCharacter::OnFactionTagChanged()
+{
+	if (FactionTag == NovaGameplayTags::Faction_Enemy)
+	{
+		OutlineStencilValue = 255;
+	}
+	else if (FactionTag == NovaGameplayTags::Faction_Player)
+	{
+		OutlineStencilValue = 254;
+	}
+	else if (FactionTag == NovaGameplayTags::Faction_NPC)
+	{
+		OutlineStencilValue = 253;
+	}
+	
+	GetMesh()->SetCustomDepthStencilValue(OutlineStencilValue);
+}
+
 void ANovaCharacter::OnHovered()
 {
 	if (bIsSelected == true)
@@ -120,7 +141,7 @@ void ANovaCharacter::OnUnhovered()
 void ANovaCharacter::OnSelected()
 {
 	bIsSelected = true;
-	GetMesh()->SetRenderCustomDepth(true);
+	GetMesh()->SetRenderCustomDepth(false);
 }
 
 void ANovaCharacter::OnDeselected()
@@ -132,4 +153,14 @@ void ANovaCharacter::OnDeselected()
 void ANovaCharacter::GetTargetBounds(float& OutHalfWidth, float& OutHalfHeight) const
 {
 	GetCapsuleComponent()->GetScaledCapsuleSize(OutHalfWidth, OutHalfHeight);
+}
+
+FGameplayTag ANovaCharacter::GetFactionTag() const
+{
+	return FactionTag;
+}
+
+void ANovaCharacter::SetFactionTag(const FGameplayTag& NewFactionTag)
+{
+	FactionTag = NewFactionTag;
 }

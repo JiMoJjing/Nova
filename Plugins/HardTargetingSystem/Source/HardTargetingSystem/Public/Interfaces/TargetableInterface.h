@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "UObject/Interface.h"
 #include "TargetableInterface.generated.h"
 
@@ -31,4 +32,7 @@ public:
 	virtual void OnDeselected() = 0;
 
 	virtual void GetTargetBounds(float& OutHalfWidth, float& OutHalfHeight) const = 0;
+	
+	virtual FGameplayTag GetFactionTag() const = 0;
+	virtual void SetFactionTag(const FGameplayTag& NewFactionTag) = 0;
 };
