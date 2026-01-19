@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "HardTargetingSystem",
+	"Description": "A modular Hard Targeting System inspired by MMORPG mechanics. Designed with an Interface-based architecture to minimize coupling. Implemented as an Actor Component for high reusability across different projects.",
+	"Category": "Other",
+	"CreatedBy": "JiYongHyeon",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "HardTargetingSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

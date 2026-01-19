@@ -2,6 +2,7 @@
 
 #include "Character/NovaCharacter.h"
 
+#include "NovaGameplayTags.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Character/Components/NovaHeroComponent.h"
@@ -16,12 +17,14 @@ ANovaCharacter::ANovaCharacter()
 {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
+	GetMesh()->SetReceivesDecals(false);
+
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
@@ -43,6 +46,10 @@ ANovaCharacter::ANovaCharacter()
 
 	NovaPawnExtensionComponent = CreateDefaultSubobject<UNovaPawnExtensionComponent>(TEXT("PawnExtension"));
 	NovaHeroComponent = CreateDefaultSubobject<UNovaHeroComponent>(TEXT("NovaHeroComponent"));
+
+	bIsSelected = false;
+	
+	FactionTag = NovaGameplayTags::Faction_Enemy;
 }
 
 void ANovaCharacter::BeginPlay()
@@ -50,6 +57,7 @@ void ANovaCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	NovaPawnExtensionComponent->CheckDefaultInitialization();
+	OnFactionTagChanged();
 }
 
 void ANovaCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -90,4 +98,69 @@ void ANovaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	NovaPawnExtensionComponent->SetupPlayerInputComponent();
+}
+
+void ANovaCharacter::OnFactionTagChanged()
+{
+	if (FactionTag == NovaGameplayTags::Faction_Enemy)
+	{
+		OutlineStencilValue = 255;
+	}
+	else if (FactionTag == NovaGameplayTags::Faction_Player)
+	{
+		OutlineStencilValue = 254;
+	}
+	else if (FactionTag == NovaGameplayTags::Faction_NPC)
+	{
+		OutlineStencilValue = 253;
+	}
+	
+	GetMesh()->SetCustomDepthStencilValue(OutlineStencilValue);
+}
+
+void ANovaCharacter::OnHovered()
+{
+	if (bIsSelected == true)
+	{
+		return;
+	}
+	
+	GetMesh()->SetRenderCustomDepth(true);
+}
+
+void ANovaCharacter::OnUnhovered()
+{
+	if (bIsSelected == true)
+	{
+		return;
+	}
+	
+	GetMesh()->SetRenderCustomDepth(false);
+}
+
+void ANovaCharacter::OnSelected()
+{
+	bIsSelected = true;
+	GetMesh()->SetRenderCustomDepth(false);
+}
+
+void ANovaCharacter::OnDeselected()
+{
+	bIsSelected = false;
+	GetMesh()->SetRenderCustomDepth(false);
+}
+
+void ANovaCharacter::GetTargetBounds(float& OutHalfWidth, float& OutHalfHeight) const
+{
+	GetCapsuleComponent()->GetScaledCapsuleSize(OutHalfWidth, OutHalfHeight);
+}
+
+FGameplayTag ANovaCharacter::GetFactionTag() const
+{
+	return FactionTag;
+}
+
+void ANovaCharacter::SetFactionTag(const FGameplayTag& NewFactionTag)
+{
+	FactionTag = NewFactionTag;
 }

@@ -16,4 +16,9 @@ namespace NovaGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Look, "InputTag.Look", "Look Input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Zoom, "InputTag.Zoom", "Zoom Input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Jump, "InputTag.Jump", "Jump Input.");
+	
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Faction_Player, "Faction.Player", "Faction player.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Faction_Enemy, "Faction.Enemy", "Faction Enemy.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Faction_NPC, "Faction.NPC", "Faction NPC.");
+	
 }
