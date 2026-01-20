@@ -1,59 +1,47 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
-#include "GameFramework/Character.h"
-#include "Interfaces/TargetableInterface.h"
-#include "Logging/LogMacros.h"
-#include "NovaCharacter.generated.h"
+#include "Character/NovaCharacterBase.h"
+#include "NovaHeroCharacter.generated.h"
 
-class UNovaPawnExtensionComponent;
-class UNovaHeroComponent;
 class USpringArmComponent;
 class UCameraComponent;
+class UNovaPawnExtensionComponent;
+class UNovaHeroComponent;
 
 /**
  *	Author: 지용현
- *	Date: 2026.01.04(2026.01.04)
+ *	Date: 2026.01.20(2026.01.20)
  *	프로젝트의 플레이어 캐릭터
+ *	
  */
-UCLASS(config=Game)
-class ANovaCharacter : public ACharacter, public ITargetableInterface
+
+UCLASS()
+class NOVA_API ANovaHeroCharacter : public ANovaCharacterBase
 {
 	GENERATED_BODY()
 
 public:
-	ANovaCharacter();
+	ANovaHeroCharacter();
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
+	
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 
 	virtual void OnRep_Controller() override;
 	virtual void OnRep_PlayerState() override;
 
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	
-	void OnFactionTagChanged();
-	
 public:
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-
-public:
-	virtual void OnHovered() override;
-	virtual void OnUnhovered() override;
-	virtual void OnSelected() override;
-	virtual void OnDeselected() override;
-	virtual void GetTargetBounds(float& OutHalfWidth, float& OutHalfHeight) const override;
-	virtual FGameplayTag GetFactionTag() const override;
-	virtual void SetFactionTag(const FGameplayTag& NewFactionTag) override;
-
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -66,12 +54,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nova", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNovaHeroComponent> NovaHeroComponent;
-
-	UPROPERTY()
-	int32 OutlineStencilValue = 255;
-
-	uint8 bIsSelected : 1;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nova|Team", meta = (AllowPrivateAccess = "true", Categories = "Faction"))
-	FGameplayTag FactionTag;
 };
