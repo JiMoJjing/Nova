@@ -6,6 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "NovaPawnData.generated.h"
 
+class UNovaAbilitySet;
 class UNovaInputConfig;
 
 /**
@@ -24,4 +25,7 @@ public:
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Nova|Input")
 	TObjectPtr<UNovaInputConfig> InputConfig;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Nova|Ability")
+	TObjectPtr<UNovaAbilitySet> AbilitySet;
 };

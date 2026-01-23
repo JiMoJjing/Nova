@@ -4,8 +4,10 @@
 #include "Character/Components/NovaPawnExtensionComponent.h"
 
 #include "AbilitySystemInterface.h"
+#include "Data/NovaPawnData.h"
 #include "GameFramework/PlayerState.h"
 #include "GAS/NovaAbilitySystemComponent.h"
+#include "GAS/Data/NovaAbilitySet.h"
 #include "Input/NovaInputComponent.h"
 #include "Player/NovaPlayerController.h"
 #include "Player/NovaPlayerState.h"
@@ -103,9 +105,14 @@ void UNovaPawnExtensionComponent::InitializeAbilitySystem(UNovaAbilitySystemComp
 			OtherExtensionComp->UninitializeAbilitySystem();
 		}
 	}
-
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
+	
+	if (PawnData != nullptr)
+	{
+		TArray<FGameplayAbilitySpecHandle> GrantedHandles;
+		PawnData->AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, GrantedHandles);
+	}
 	
 	OnAbilitySystemInitialized.Broadcast();
 }

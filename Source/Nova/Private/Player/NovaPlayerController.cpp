@@ -7,17 +7,16 @@
 #include "Components/HardTargetingComponent.h"
 #include "GAS/NovaAbilitySystemComponent.h"
 #include "Input/NovaInputComponent.h"
-#include "Interfaces/TargetableInterface.h"
 #include "Player/NovaPlayerState.h"
+#include "UI/Hotbar/NovaHotbarComponent.h"
 
 ANovaPlayerController::ANovaPlayerController(const FObjectInitializer& ObjectInitializer)
 {
 	HardTargetingComponent = CreateDefaultSubobject<UHardTargetingComponent>(TEXT("HardTargetingComponent"));
+	HotbarComponent = CreateDefaultSubobject<UNovaHotbarComponent>(TEXT("HotbarComponent"));
 
 	bReplicates = true;
 
-	// bEnableClickEvents = false; 
-	// bEnableMouseOverEvents = false;
 }
 
 ANovaPlayerState* ANovaPlayerController::GetNovaPlayerState() const
@@ -69,7 +68,7 @@ void ANovaPlayerController::SetupInputComponent()
 
 	if (PlayerControllerMappingContext != nullptr)
 	{
-		Subsystem->AddMappingContext(PlayerControllerMappingContext, 1);
+		Subsystem->AddMappingContext(PlayerControllerMappingContext, 0);
 	}
 
 	UNovaInputComponent* NovaIC = Cast<UNovaInputComponent>(InputComponent);
@@ -77,6 +76,12 @@ void ANovaPlayerController::SetupInputComponent()
 	{
 		NovaIC->BindAction(LeftMouseClickAction, ETriggerEvent::Completed, this, &ANovaPlayerController::ClickTarget);
 		NovaIC->BindAction(RightMouseClickAction, ETriggerEvent::Completed, this, &ANovaPlayerController::ClickTarget);
+		
+		if (QuickSlotInputConfig != nullptr)
+		{
+			TArray<uint32> Handles;
+			NovaIC->BindAbilityActions(QuickSlotInputConfig, this, &ANovaPlayerController::Input_AbilityInputTagPressed, &ANovaPlayerController::Input_AbilityInputTagReleased, Handles);
+		}
 	}
 }
 
@@ -96,6 +101,56 @@ void ANovaPlayerController::ClickTarget()
 	{
 		HardTargetingComponent->SelectTargetUnderCursor();
 	}
+}
+
+void ANovaPlayerController::Input_AbilityInputTagPressed(FGameplayTag InputTag)
+{
+	const int32 SlotIndex = GetHotbarSlotIndexFromTag(InputTag);
+
+	if (SlotIndex >= 0)
+	{
+		if (HotbarComponent)
+		{
+			HotbarComponent->UseSlot(SlotIndex);
+		}
+	}
+	else
+	{
+		if (UNovaAbilitySystemComponent* NovaASC = GetNovaAbilitySystemComponent())
+		{
+			NovaASC->AbilityInputTagPressed(InputTag);
+		}
+	}
+}
+
+void ANovaPlayerController::Input_AbilityInputTagReleased(FGameplayTag InputTag)
+{
+	if (UNovaAbilitySystemComponent* NovaASC = GetNovaAbilitySystemComponent())
+	{
+		NovaASC->AbilityInputTagReleased(InputTag);
+	}
+}
+
+int32 ANovaPlayerController::GetHotbarSlotIndexFromTag(FGameplayTag InputTag)
+{
+	FString TagString = InputTag.ToString();
+	
+	if (TagString.Contains(TEXT("QuickSlot")))
+	{
+		int32 LastDotIndex;
+		
+		if (TagString.FindLastChar('.', LastDotIndex))
+		{
+			FString NumberStr = TagString.RightChop(LastDotIndex + 1);
+			if (NumberStr.IsNumeric())
+			{
+				int32 SlotNum = FCString::Atoi(*NumberStr);
+				return SlotNum > 0 ? SlotNum - 1 : -1;
+			}
+		}
+	}
+
+	return -1;
 }
 
 void ANovaPlayerController::OnHoveredTargetChanged(AActor* NewTarget, AActor* OldTarget)

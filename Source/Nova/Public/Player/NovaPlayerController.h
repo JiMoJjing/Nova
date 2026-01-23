@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/PlayerController.h"
 #include "NovaPlayerController.generated.h"
 
+class UNovaInputConfig;
+class UNovaHotbarComponent;
 class UInputAction;
 class UInputMappingContext;
 class UHardTargetingComponent;
@@ -27,6 +30,12 @@ public:
 	ANovaPlayerState* GetNovaPlayerState() const;
 
 	UNovaAbilitySystemComponent* GetNovaAbilitySystemComponent() const;
+	
+	UFUNCTION(BlueprintCallable)
+	UHardTargetingComponent* GetHardTargetingComponent() const { return HardTargetingComponent; }
+	
+	UFUNCTION(BlueprintCallable)
+	UNovaHotbarComponent* GetHotbarComponent() const { return HotbarComponent; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -35,6 +44,11 @@ protected:
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 
 	void ClickTarget();
+	
+	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
+	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
+	
+	int32 GetHotbarSlotIndexFromTag(FGameplayTag InputTag);
 
 	UFUNCTION()
 	void OnHoveredTargetChanged(AActor* NewTarget, AActor* OldTarget);
@@ -44,6 +58,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nova", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UHardTargetingComponent> HardTargetingComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Nova", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNovaHotbarComponent> HotbarComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nova|Targeting", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputMappingContext> PlayerControllerMappingContext;
@@ -53,4 +70,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nova|Targeting", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> RightMouseClickAction;	
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Nova|Input")
+	TObjectPtr<UNovaInputConfig> QuickSlotInputConfig;
 };
